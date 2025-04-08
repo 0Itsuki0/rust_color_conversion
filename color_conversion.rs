@@ -148,65 +148,6 @@ pub fn rgba_to_hex(
     ));
 }
 
-/// RGBA to HSLA
-///
-/// Ranges:
-/// * H: 0.0 - 360.0
-/// * S: 0.0 - 100.0
-/// * L: 0.0 - 100.0
-///
-/// * R: 0 - 255
-/// * G: 0 - 255
-/// * B: 0 - 255
-///
-/// * A: 0.0 - 1.0
-pub fn rgba_to_hsla(rgba: (u32, u32, u32, Option<f64>)) -> anyhow::Result<(f64, f64, f64, f64)> {
-    if !check_rgb(&rgba.0) || !check_rgb(&rgba.1) || !check_rgb(&rgba.2) {
-        bail!("invalid rgb value.")
-    }
-    let (r, g, b, a) = (
-        (rgba.0 as f64) / 255.0,
-        (rgba.1 as f64) / 255.0,
-        (rgba.2 as f64) / 255.0,
-        rgba.3.unwrap_or(1.0),
-    );
-
-    if !check_alpha(&a) {
-        bail!("invalid alpha value")
-    }
-
-    let (max, max_index) = max(vec![r, g, b]).unwrap_or((1.0, 0));
-    let (min, _) = min(vec![r, g, b]).unwrap_or((0.0, 0));
-
-    let lum = (max + min) / 2.0;
-    if max == min {
-        return Ok((0.0, 0.0, lum, a));
-    }
-
-    let chroma = max - min;
-    let sat = chroma / (1.0 - (2.0 * lum - 1.0).abs());
-
-    let hue = match max_index {
-        // r
-        0 => {
-            let x = if g < b { 6.0 } else { 0.0 };
-            (g - b) / chroma + x
-        }
-        // g
-        1 => (b - r) / chroma + 2.0,
-        // b
-        2 => (r - g) / chroma + 4.0,
-        _ => unreachable!(),
-    };
-
-    let mut hue = hue * 60.0;
-    if hue < 0.0 {
-        hue = hue + 360.0
-    }
-
-    return Ok((hue, sat * 100.0, lum * 100.0, a));
-}
-
 /// HSLA to RGBA
 ///
 /// Ranges:
@@ -274,6 +215,65 @@ pub fn hsla_to_rgba(hsla: (f64, f64, f64, Option<f64>)) -> anyhow::Result<(u32, 
         (b * 255.0) as u32,
         a,
     ));
+}
+
+/// RGBA to HSLA
+///
+/// Ranges:
+/// * H: 0.0 - 360.0
+/// * S: 0.0 - 100.0
+/// * L: 0.0 - 100.0
+///
+/// * R: 0 - 255
+/// * G: 0 - 255
+/// * B: 0 - 255
+///
+/// * A: 0.0 - 1.0
+pub fn rgba_to_hsla(rgba: (u32, u32, u32, Option<f64>)) -> anyhow::Result<(f64, f64, f64, f64)> {
+    if !check_rgb(&rgba.0) || !check_rgb(&rgba.1) || !check_rgb(&rgba.2) {
+        bail!("invalid rgb value.")
+    }
+    let (r, g, b, a) = (
+        (rgba.0 as f64) / 255.0,
+        (rgba.1 as f64) / 255.0,
+        (rgba.2 as f64) / 255.0,
+        rgba.3.unwrap_or(1.0),
+    );
+
+    if !check_alpha(&a) {
+        bail!("invalid alpha value")
+    }
+
+    let (max, max_index) = max(vec![r, g, b]).unwrap_or((1.0, 0));
+    let (min, _) = min(vec![r, g, b]).unwrap_or((0.0, 0));
+
+    let lum = (max + min) / 2.0;
+    if max == min {
+        return Ok((0.0, 0.0, lum, a));
+    }
+
+    let chroma = max - min;
+    let sat = chroma / (1.0 - (2.0 * lum - 1.0).abs());
+
+    let hue = match max_index {
+        // r
+        0 => {
+            let x = if g < b { 6.0 } else { 0.0 };
+            (g - b) / chroma + x
+        }
+        // g
+        1 => (b - r) / chroma + 2.0,
+        // b
+        2 => (r - g) / chroma + 4.0,
+        _ => unreachable!(),
+    };
+
+    let mut hue = hue * 60.0;
+    if hue < 0.0 {
+        hue = hue + 360.0
+    }
+
+    return Ok((hue, sat * 100.0, lum * 100.0, a));
 }
 
 /// HSVA to RGBA
@@ -359,7 +359,7 @@ pub fn hsva_to_rgba(hsva: (f64, f64, f64, Option<f64>)) -> anyhow::Result<(u32, 
     ));
 }
 
-/// RGBA to HSLA
+/// RGBA to HSVA
 ///
 /// Ranges:
 /// * H: 0.0 - 360.0
@@ -413,47 +413,7 @@ pub fn rgba_to_hsva(rgba: (u32, u32, u32, Option<f64>)) -> anyhow::Result<(f64, 
     return Ok((hue, sat * 100.0, val * 100.0, a));
 }
 
-/// RGBA to CMYK
-///
-/// Ranges:
-/// * C: 0.0 - 100.0
-/// * M: 0.0 - 100.0
-/// * Y: 0.0 - 100.0
-/// * K: 0.0 - 100.0
-///
-/// * R: 0 - 255
-/// * G: 0 - 255
-/// * B: 0 - 255
-///
-/// * A: 0.0 - 1.0
-pub fn rgba_to_cmyka(
-    rgba: (u32, u32, u32, Option<f64>),
-) -> anyhow::Result<(f64, f64, f64, f64, f64)> {
-    if !check_rgb(&rgba.0) || !check_rgb(&rgba.1) || !check_rgb(&rgba.2) {
-        bail!("invalid rgb value.")
-    }
-    let (r, g, b, a) = (
-        (rgba.0 as f64) / 255.0,
-        (rgba.1 as f64) / 255.0,
-        (rgba.2 as f64) / 255.0,
-        rgba.3.unwrap_or(1.0),
-    );
-
-    if !check_alpha(&a) {
-        bail!("invalid alpha value")
-    }
-
-    let (max, _) = max(vec![r, g, b]).unwrap_or((1.0, 0));
-    let k = 1.0 - max;
-
-    let c = (1.0 - r - k) / (1.0 - k);
-    let m = (1.0 - g - k) / (1.0 - k);
-    let y = (1.0 - b - k) / (1.0 - k);
-
-    return Ok((c * 100.0, m * 100.0, y * 100.0, k * 100.0, a));
-}
-
-/// CMYK to RGBA
+/// CMYKA to RGBA
 ///
 /// Ranges:
 /// * C: 0.0 - 100.0
@@ -500,6 +460,49 @@ pub fn cmyka_to_rgba(
     ));
 }
 
+/// RGBA to CMYKA
+///
+/// Ranges:
+/// * C: 0.0 - 100.0
+/// * M: 0.0 - 100.0
+/// * Y: 0.0 - 100.0
+/// * K: 0.0 - 100.0
+///
+/// * R: 0 - 255
+/// * G: 0 - 255
+/// * B: 0 - 255
+///
+/// * A: 0.0 - 1.0
+pub fn rgba_to_cmyka(
+    rgba: (u32, u32, u32, Option<f64>),
+) -> anyhow::Result<(f64, f64, f64, f64, f64)> {
+    if !check_rgb(&rgba.0) || !check_rgb(&rgba.1) || !check_rgb(&rgba.2) {
+        bail!("invalid rgb value.")
+    }
+    let (r, g, b, a) = (
+        (rgba.0 as f64) / 255.0,
+        (rgba.1 as f64) / 255.0,
+        (rgba.2 as f64) / 255.0,
+        rgba.3.unwrap_or(1.0),
+    );
+
+    if !check_alpha(&a) {
+        bail!("invalid alpha value")
+    }
+
+    let (max, _) = max(vec![r, g, b]).unwrap_or((1.0, 0));
+    let k = 1.0 - max;
+
+    let c = (1.0 - r - k) / (1.0 - k);
+    let m = (1.0 - g - k) / (1.0 - k);
+    let y = (1.0 - b - k) / (1.0 - k);
+
+    return Ok((c * 100.0, m * 100.0, y * 100.0, k * 100.0, a));
+}
+
+/********************************/
+/****** Helper functions ********/
+/********************************/
 /// check rgb value
 fn check_rgb(num: &u32) -> bool {
     return (0..=255).contains(num);
