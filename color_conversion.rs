@@ -55,7 +55,6 @@ fn main() -> anyhow::Result<()> {
 /// * A: 0.0 - 1.0
 pub fn complementary(rgba: (u32, u32, u32, Option<f64>)) -> anyhow::Result<(u32, u32, u32, f64)> {
     let (mut h, s, v, a) = rgba_to_hsva(rgba)?;
-    println!("{}, {}, {}", h, s, v);
     fn shift_hue(h: f64, s: f64) -> f64 {
         let mut h = h + s;
         if h >= 360.0 {
@@ -67,7 +66,6 @@ pub fn complementary(rgba: (u32, u32, u32, Option<f64>)) -> anyhow::Result<(u32,
         return h;
     }
     h = shift_hue(h, 180.0);
-    println!("{}, {}, {}", h, s, v);
     return hsva_to_rgba((h, s, v, Some(a)));
 }
 
