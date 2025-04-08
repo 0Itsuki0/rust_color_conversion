@@ -14,6 +14,8 @@
 - hsva to rgba
 - cmyka to rgba
 
+### Complementary
+- rgba to rgba (complementary)
 
 ## Sample Usage
 ```
@@ -53,6 +55,11 @@ fn main() -> anyhow::Result<()> {
     let cmyka = (47.0, 0.0, 16.0, 0.0, Some(0.94));
     let rgba = cmyka_to_rgba(cmyka)?;
     println!("cmyka to rgba: {:?}", rgba);
+
+    // complementary color
+    let rgba = (87, 60, 250, Some(1.0));
+    let complementary = complementary(rgba)?;
+    println!("complementary: {:?}", complementary);
 
     Ok(())
 }
