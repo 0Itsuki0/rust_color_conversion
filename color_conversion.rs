@@ -37,7 +37,38 @@ fn main() -> anyhow::Result<()> {
     let rgba = cmyka_to_rgba(cmyka)?;
     println!("cmyka to rgba: {:?}", rgba);
 
+    // complementary color
+    let rgba = (87, 60, 250, Some(1.0));
+    let complementary = complementary(rgba)?;
+    println!("complementary: {:?}", complementary);
     Ok(())
+}
+
+/// Complementary Color
+///
+/// RGBA to RGBA
+///
+/// Ranges:
+/// * R: 0 - 255
+/// * G: 0 - 255
+/// * B: 0 - 255
+/// * A: 0.0 - 1.0
+pub fn complementary(rgba: (u32, u32, u32, Option<f64>)) -> anyhow::Result<(u32, u32, u32, f64)> {
+    let (mut h, s, v, a) = rgba_to_hsva(rgba)?;
+    println!("{}, {}, {}", h, s, v);
+    fn shift_hue(h: f64, s: f64) -> f64 {
+        let mut h = h + s;
+        if h >= 360.0 {
+            h = h - 360.0
+        }
+        if h < 0.0 {
+            h = h + 360.0
+        }
+        return h;
+    }
+    h = shift_hue(h, 180.0);
+    println!("{}, {}, {}", h, s, v);
+    return hsva_to_rgba((h, s, v, Some(a)));
 }
 
 /// hex string to RGBA
@@ -151,7 +182,7 @@ pub fn rgba_to_hex(
 /// HSLA to RGBA
 ///
 /// Ranges:
-/// * H: 0.0 - 360.0
+/// * H: 0.0 - 360.0 (exclusive)
 /// * S: 0.0 - 100.0
 /// * L: 0.0 - 100.0
 ///
@@ -220,7 +251,7 @@ pub fn hsla_to_rgba(hsla: (f64, f64, f64, Option<f64>)) -> anyhow::Result<(u32, 
 /// RGBA to HSLA
 ///
 /// Ranges:
-/// * H: 0.0 - 360.0
+/// * H: 0.0 - 360.0 (exclusive)
 /// * S: 0.0 - 100.0
 /// * L: 0.0 - 100.0
 ///
@@ -279,7 +310,7 @@ pub fn rgba_to_hsla(rgba: (u32, u32, u32, Option<f64>)) -> anyhow::Result<(f64, 
 /// HSVA to RGBA
 ///
 /// Ranges:
-/// * H: 0.0 - 360.0
+/// * H: 0.0 - 360.0 (exclusive)
 /// * S: 0.0 - 100.0
 /// * V: 0.0 - 100.0
 ///
@@ -362,7 +393,7 @@ pub fn hsva_to_rgba(hsva: (f64, f64, f64, Option<f64>)) -> anyhow::Result<(u32, 
 /// RGBA to HSVA
 ///
 /// Ranges:
-/// * H: 0.0 - 360.0
+/// * H: 0.0 - 360.0 (exclusive)
 /// * S: 0.0 - 100.0
 /// * V: 0.0 - 100.0
 ///
